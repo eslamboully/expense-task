@@ -1,0 +1,289 @@
+@model Infrastructure.ViewModels.ExpenseViewModel
+@{
+    string title = "Expenses";
+    var startAt = Context.Request.Query["startAt"];
+    var endAt = Context.Request.Query["endAt"];
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+    <div class="row mb-2">
+        <div class="col-sm-6">
+        <h1>@title Table</h1>
+        </div>
+        <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a asp-action="index" asp-controller="home">Home</a></li>
+            <li class="breadcrumb-item active">@title</li>
+        </ol>
+        </div>
+    </div>
+    </div><!-- /.container-fluid -->
+</section>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <form action="" method="get">
+                    <div class="row"> 
+                        <div class="col-lg-2">
+                            <label> From  </label>
+                            <input type="date" class="form-control" value="@startAt" name="startAt" style="font-weight:bold">
+                        </div>
+                        <div class="col-lg-2">
+                            <label> To </label>
+                            <input type="date" class="form-control" value="@endAt" name="endAt" style="font-weight:bold">
+                        </div>
+                
+                        <button type="submit" class="col-lg-1 btn btn-outline-primary" style=" margin-top:20px;">
+                            <i class="fa fa-search"></i>Search
+                        </button>
+
+                        <button type="button" data-toggle="modal" data-target="#addModal" 
+                            class="col-lg-1 btn btn-outline-primary" style=" margin-top:20px; margin-left:20px;">
+                            <i class="fa fa-plus"></i> Add
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+            <table id="table" class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>operations</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Expenses)
+                    {
+                        <tr>
+                            <td>@row.Id</td>
+                            <td>@row.Name</td>
+                            <td>@row.Amount $</td>
+                            <td>@(row.ExpenseDate)</td>
+                            <td>
+                                <form asp-action="delete" asp-controller="@title" asp-area="dashboard" asp-route-id="@row.Id" method="post">
+                                    <button type="button" class="btn btn-outline-success show-button" 
+                                        data-name="@row.Name" data-id="@row.Id"
+                                        data-amount="@row.Amount" data-category-id="@row.CategoryId" 
+                                        data-expense-date="@row.ExpenseDate"><i class="fa fa-edit"></i></button>
+                                    <button onclick="return confirm('Are you sure ?')" class="btn btn-outline-danger"><i class="fa fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+            <!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+        </div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+    </div>
+    <!-- /.container-fluid -->
+</section>
+
+<div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Add New</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="errors-div"></div>
+                <form class="addedForm" method="post">
+                    <div class="mb-3">
+                        <label for="simpleinput" class="form-label">Expense Name</label>
+                        <input type="text" name="name" id="simpleinput" placeholder="Expense Name" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="simpleinput" class="form-label">Choose a Category</label>
+                        <select name="categoryId" class="form-control">
+                            <option>Choose a category</option>
+                            @foreach (var category in Model.Categories)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="simpleinput" class="form-label">Amount</label>
+                        <input type="text" name="amount" id="simpleinput" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="simpleinput" class="form-label">Expense Date</label>
+                        <input type="date" name="expenseDate" id="simpleinput" class="form-control">
+                    </div>
+                </form>
+            </div> <!-- end col -->
+        </div> <!-- end tab-content-->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary add-new-button">Create New</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Edit Row</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="errors-edit-div"></div>
+                <form class="editedForm" method="post">
+                    <input type="hidden" name="id" value="">
+                    <div class="mb-3">
+                        <label for="simpleinput" class="form-label">Expense Name</label>
+                        <input type="text" name="edit-name" id="simpleinput" placeholder="Expense Name" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="simpleinput" class="form-label">Choose a Category</label>
+                        <select name="edit-categoryId" class="form-control">
+                            <option>Choose a category</option>
+                            @foreach (var category in Model.Categories)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="simpleinput" class="form-label">Amount</label>
+                        <input type="text" name="edit-amount" id="simpleinput" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="simpleinput" class="form-label">Expense Date</label>
+                        <input type="date" name="edit-expenseDate" id="simpleinput" class="form-control">
+                    </div>
+                </form>
+            </div> <!-- end col -->
+        </div> <!-- end tab-content-->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary update-button">Edit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section css
+{
+    <link rel="stylesheet" href="~/dashboard/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/dashboard/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+}
+
+@section js 
+{
+    <script src="~/dashboard/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/dashboard/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/dashboard/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/dashboard/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="~/dashboard/plugins/moment/moment.min.js"></script>
+    
+    @if (TempData["success"] != null)
+    {
+        <script>toastr.success('data edited successfully','200');</script>
+    }
+
+    <script>
+        $('#table').DataTable({
+            "paging": true,
+            "lengthChange": false,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true,
+            "responsive": true,
+        });
+
+        $(document).on("click",".add-new-button", function() {
+
+            $.ajax({
+                url: '@Url.ActionLink("create", @title)',
+                method: "post",
+                data: $(".addedForm").serialize(),
+                success: (data) => {
+                    $('#addModal').modal('hide');
+                    window.location.reload();  
+                },
+                error: (err) => {
+                    $(".errors-div").html(``);
+                    err.responseJSON.forEach(error => {
+                        $(".errors-div").append(`<p class="alert alert-danger">${error}</p>`);
+                    });
+                }
+            });
+        });
+
+        $(document).on("click", ".show-button", function() {
+            const id = $(this).data("id");
+            const name = $(this).data("name");
+            const categoryId = $(this).data("category-id");
+            const amount = $(this).data("amount");
+            const expenseDate = $(this).data("expense-date");
+
+            var expenseDateAfterEdit = new Date(expenseDate);
+
+            $("input[name=id]").val(id);
+            $("input[name=edit-name]").val(name);
+            $("select[name=edit-categoryId]").val(categoryId);
+            $("input[name=edit-amount]").val(amount);
+            $("input[name=edit-expenseDate]").val(expenseDateAfterEdit.toISOString().substr(0, 10));
+            
+            $('#editModal').modal('show');
+        });
+
+        $(document).on("click",".update-button", function() {
+            const id = $("input[name=id]").val();
+            const name = $("input[name=edit-name]").val();
+            const categoryId = $("select[name=edit-categoryId]").val();
+            const amount = $("input[name=edit-amount]").val();
+            const expenseDate = $("input[name=edit-expenseDate]").val();
+
+            $.ajax({
+                url: '@Url.ActionLink("edit", @title)',
+                method: "post",
+                dataType: "json",
+                data: {Id: id, Name: name, CategoryId: categoryId, Amount: amount, ExpenseDate: expenseDate},
+                success: (data) => {
+                    $('#editModal').modal('hide');
+                    window.location.reload();  
+                },
+                error: (err) => {
+                    $(".errors-edit-div").html(``);
+                    err.responseJSON.forEach(error => {
+                        $(".errors-edit-div").append(`<p class="alert alert-danger">${error}</p>`);
+                    });
+                }
+            });
+        });
+    </script>
+}
